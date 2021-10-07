@@ -1,5 +1,3 @@
-import java.math.*;
-
 /**
  *
  * @author Andrea Masciocchi
@@ -20,10 +18,12 @@ public class Vector {
             this.x = newton * Math.cos(angle);
             this.y = newton * Math.sin(angle);
         }else{
+            int n = 1;
             this.x = first;
             this.y = second;
-            this.newton = Math.sqrt(Math.pow(first, 2) + Math.pow(second, 2));
-            this.angle = Math.tanh(y/x);
+            if(x<0){n = -1;}
+            this.newton = n * Math.sqrt(Math.pow(first, 2) + Math.pow(second, 2));
+            this.angle = Math.atan(y/x);
         }
     }
     
@@ -42,14 +42,23 @@ public class Vector {
     public String getName(){
         return this.name;
     }
+
+    public void setX(double x) {
+        this.x = x;
+    }
+
+    public void setY(double y) {
+        this.y = y;
+    }
+    
     
     public String toString(){
         String txt = "";
-        txt += this.getName() + "\n";
-        txt += this.getX() + "\n";
-        txt += this.getY() + "\n";
-        txt += this.getAngle() + "\n";
-        txt += this.getNewton() + "\n";
+        txt += "Name: " + this.getName() + "\n";
+        txt += "x: " + this.getX() + "\n";
+        txt += "y: " + this.getY() + "\n";
+        txt += "Angle: " + this.getAngle() + "\n";
+        txt += "Newton: " + this.getNewton() + "\n";
         return txt;
     }
 }
