@@ -25,6 +25,8 @@ public class VectorFrame extends javax.swing.JFrame {
     boolean startDrag = true;
     Timer timer;
     Body body;
+    Vector resultVector;
+    int resultVectorIndex = 0;
     
     boolean isPolar = false;
     
@@ -35,7 +37,7 @@ public class VectorFrame extends javax.swing.JFrame {
     public VectorFrame() {
         initComponents();
         this.body = new Body(jCanvas.getWidth(), jCanvas.getHeight());
-        initVars();
+        //initVars();
     }
     
     public boolean isPolar(){
@@ -153,8 +155,10 @@ public class VectorFrame extends javax.swing.JFrame {
     private void initComponents() {
 
         jTextField1 = new javax.swing.JTextField();
+        jButton1 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jNewVector = new javax.swing.JButton();
+        jDeleteVector = new javax.swing.JButton();
         jScrollPane1 = new javax.swing.JScrollPane();
         jVectorList = new javax.swing.JList<>();
         jPanel3 = new javax.swing.JPanel();
@@ -166,18 +170,33 @@ public class VectorFrame extends javax.swing.JFrame {
         jVectorName = new javax.swing.JTextPane();
         jLabel3 = new javax.swing.JLabel();
         jPolarCheckbox = new javax.swing.JCheckBox();
-        jDeleteVector = new javax.swing.JButton();
+        jCalcVector = new javax.swing.JButton();
         jCanvas = new javax.swing.JPanel();
 
         jTextField1.setText("jTextField1");
 
+        jButton1.setText("jButton1");
+
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                formComponentResized(evt);
+            }
+        });
 
         jNewVector.setText("+ New Vector");
         jNewVector.setMinimumSize(new java.awt.Dimension(100, 25));
         jNewVector.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jNewVectorActionPerformed(evt);
+            }
+        });
+
+        jDeleteVector.setText("- Delete Vector");
+        jDeleteVector.setMinimumSize(new java.awt.Dimension(100, 25));
+        jDeleteVector.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jDeleteVectorActionPerformed(evt);
             }
         });
 
@@ -192,6 +211,7 @@ public class VectorFrame extends javax.swing.JFrame {
 
         jSecondLabel.setText("y");
 
+        jVectorName.setCursor(new java.awt.Cursor(java.awt.Cursor.TEXT_CURSOR));
         jScrollPane2.setViewportView(jVectorName);
 
         jLabel3.setText(" Name");
@@ -246,11 +266,10 @@ public class VectorFrame extends javax.swing.JFrame {
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
-        jDeleteVector.setText("- Delete Vector");
-        jDeleteVector.setMinimumSize(new java.awt.Dimension(100, 25));
-        jDeleteVector.addActionListener(new java.awt.event.ActionListener() {
+        jCalcVector.setText("Calc Result Vector");
+        jCalcVector.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jDeleteVectorActionPerformed(evt);
+                jCalcVectorActionPerformed(evt);
             }
         });
 
@@ -265,22 +284,27 @@ public class VectorFrame extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jDeleteVector, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jNewVector, javax.swing.GroupLayout.Alignment.LEADING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addComponent(jScrollPane1)
+                    .addGroup(jPanel1Layout.createSequentialGroup()
+                        .addComponent(jNewVector, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jDeleteVector, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jCalcVector, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addComponent(jNewVector, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jNewVector, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jDeleteVector, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jDeleteVector, javax.swing.GroupLayout.PREFERRED_SIZE, 23, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jCalcVector)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 147, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 231, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                .addContainerGap())
         );
 
         jCanvas.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
@@ -301,7 +325,7 @@ public class VectorFrame extends javax.swing.JFrame {
         jCanvas.setLayout(jCanvasLayout);
         jCanvasLayout.setHorizontalGroup(
             jCanvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 334, Short.MAX_VALUE)
+            .addGap(0, 358, Short.MAX_VALUE)
         );
         jCanvasLayout.setVerticalGroup(
             jCanvasLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -355,7 +379,7 @@ public class VectorFrame extends javax.swing.JFrame {
             jSecondValue.setText(String.valueOf(yLength));
         }
         if(jVectorName.getText().isEmpty()){
-            jVectorName.setText("AutogenerateName " + String.valueOf(body.vectors.size()));
+            jVectorName.setText("AutoName " + String.valueOf(body.vectors.size()));
         }
         addVector();
         repaint();
@@ -418,6 +442,28 @@ public class VectorFrame extends javax.swing.JFrame {
         addVector();
     }//GEN-LAST:event_jNewVectorActionPerformed
 
+    private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
+        body.setX(jCanvas.getWidth()/2);
+        body.setY(jCanvas.getHeight()/2);
+    }//GEN-LAST:event_formComponentResized
+
+    private void jCalcVectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCalcVectorActionPerformed
+        if(resultVectorIndex != 0){
+            body.vectors.remove(resultVectorIndex);
+        }
+        int sumX = 0;
+        int sumY = 0;
+        for (int i = 0; i < body.vectors.size(); i++) {
+            sumX += body.vectors.get(i).getX();
+            sumY += body.vectors.get(i).getY();
+        }
+        resultVectorIndex = body.vectors.size();
+        resultVector = new Vector(sumX, sumY, "ResultVector", isPolar);
+        body.vectors.add(resultVector);
+        updateJList();
+        repaint();
+    }//GEN-LAST:event_jCalcVectorActionPerformed
+
     @Override
     public void paint(Graphics g) {
         super.paint(g);
@@ -428,7 +474,7 @@ public class VectorFrame extends javax.swing.JFrame {
         for (Vector vector : body.vectors) {
             g.drawLine(body.getX(), body.getY(), (int)vector.getX()+body.getX(), -(int)vector.getY()+body.getY());
         }
-        if(xDrag != 0 || yDrag != 0){
+        if((xDrag != 0 || yDrag != 0) && !startDrag){
             g.drawLine(body.getX(), body.getY(), xDrag, yDrag);
         }
     }
@@ -469,6 +515,8 @@ public class VectorFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton jButton1;
+    private javax.swing.JButton jCalcVector;
     private javax.swing.JPanel jCanvas;
     private javax.swing.JButton jDeleteVector;
     private javax.swing.JLabel jFirstLabel;
