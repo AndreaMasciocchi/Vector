@@ -1,3 +1,6 @@
+
+import java.util.Objects;
+
 /**
  *
  * @author Andrea Masciocchi
@@ -50,8 +53,13 @@ public class Vector {
     public void setY(double y) {
         this.y = y;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
     
     
+    @Override
     public String toString(){
         String txt = "";
         txt += "Name: " + this.getName() + "\n";
