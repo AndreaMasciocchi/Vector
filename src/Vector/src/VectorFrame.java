@@ -1,7 +1,12 @@
+import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import javax.swing.Timer;
 
 /**
@@ -14,6 +19,7 @@ public class VectorFrame extends javax.swing.JFrame {
     int yDrag;
     int centerX;
     int centerY;
+    ArrayList<Line> lines = new ArrayList<>();
     boolean startDrag = true;
     Body body;
     Vector resultVector;
@@ -27,8 +33,9 @@ public class VectorFrame extends javax.swing.JFrame {
     public VectorFrame() {
         initComponents();
         this.body = new Body(jCanvas.getWidth(), jCanvas.getHeight());
-        centerX = jCanvas.getWidth()/2;
-        centerY = jCanvas.getHeight()/2;
+        centerX = body.getX();
+        centerY = body.getY();
+        
     }
     
     public boolean checkCorrectSelection(int selectedIndex){
@@ -76,8 +83,10 @@ public class VectorFrame extends javax.swing.JFrame {
         
         resultVector = new Vector(resultX, resultY, "ResultVector", isPolar);
         body.vectors.set(0, resultVector);
-        
-        repaint();
+        lines.add(new Line(centerX, centerY, body.getX(), body.getY()));
+        centerX = body.getX();
+        centerY = body.getY();
+        //repaint();
     }
     public void addVector(){
         boolean overwrite = false;
@@ -463,8 +472,7 @@ public class VectorFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jNewVectorActionPerformed
 
     private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
-        centerX = jCanvas.getWidth()/2;
-        centerY = jCanvas.getHeight()/2;
+        
     }//GEN-LAST:event_formComponentResized
 
     private void jStartAnimationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jStartAnimationActionPerformed
@@ -510,6 +518,12 @@ public class VectorFrame extends javax.swing.JFrame {
     public void paint(Graphics g) {
         super.paint(g);
         g = jCanvas.getGraphics();
+        Graphics2D graphics2D = (Graphics2D) g;
+        graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
+            RenderingHints.VALUE_ANTIALIAS_ON); 
+        graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
+            RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+        g = graphics2D;
         g.clearRect(0, 0, jCanvas.getWidth(), jCanvas.getHeight());
         for (int i = 0; i < body.vectors.size(); i++) {
             
@@ -526,6 +540,12 @@ public class VectorFrame extends javax.swing.JFrame {
             g.setColor(Color.BLACK);
             g.drawLine(body.getX(), body.getY(), xDrag, yDrag);
         }
+        g.setColor(new Color(157, 0, 255));
+        for (int i = 0; i < lines.size(); i++) {
+            Line l = lines.get(i);
+            g.drawLine(l.getStartX(), l.getStartY(), l.getDestX(), l.getDestY());
+        }
+        g.drawLine(centerX, centerY, body.getX(), body.getY());
         body.paint(g);
     }
     

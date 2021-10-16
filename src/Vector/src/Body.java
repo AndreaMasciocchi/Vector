@@ -2,8 +2,6 @@ import java.awt.Color;
 import java.awt.Graphics;
 import java.util.ArrayList;
 
-
-
 /**
  *
  * @author Andrea Masciocchi
