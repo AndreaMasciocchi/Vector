@@ -1,4 +1,5 @@
 
+import java.awt.Color;
 import java.util.Objects;
 
 /**
@@ -12,22 +13,24 @@ public class Vector {
     private double newton;
     private double angle;
     private String name;
+    private Color color;
 
-    public Vector(double first, double second, String name, boolean isPolar) {
+    public Vector(double first, double second, String name, Color color) {
         this.name = name;
-        if(isPolar){
-            this.newton = first;
-            this.angle = second;
-            this.x = newton * Math.cos(angle);
-            this.y = newton * Math.sin(angle);
-        }else{
+        this.color = color;
+ //       if(isPolar){
+//            this.newton = first;
+//            this.angle = second;
+//            this.x = newton * Math.cos(angle);
+//            this.y = newton * Math.sin(angle);
+//        }else{
             int n = 1;
             this.x = first;
             this.y = second;
             if(x<0){n = -1;}
             this.newton = n * Math.sqrt(Math.pow(first, 2) + Math.pow(second, 2));
             this.angle = Math.atan(y/x);
-        }
+//        }
     }
     
     public double getX(){
@@ -57,6 +60,15 @@ public class Vector {
     public void setName(String name) {
         this.name = name;
     }
+
+    public Color getColor() {
+        return color;
+    }
+
+    public void setColor(Color color) {
+        this.color = color;
+    }
+    
     
     
     @Override

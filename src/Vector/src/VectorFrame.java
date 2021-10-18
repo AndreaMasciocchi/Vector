@@ -1,12 +1,19 @@
-import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
-import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Scanner;
+import javax.swing.JColorChooser;
+import javax.swing.JFileChooser;
 import javax.swing.Timer;
 
 /**
@@ -15,15 +22,20 @@ import javax.swing.Timer;
  */
 public class VectorFrame extends javax.swing.JFrame {
     
+    ArrayList<Line> lines = new ArrayList<>();
+    
     int xDrag;
     int yDrag;
     int centerX;
     int centerY;
-    ArrayList<Line> lines = new ArrayList<>();
+    int preBodyX;
+    int preBodyY;
+    
     boolean startDrag = true;
-    Body body;
-    Vector resultVector;
     boolean isPolar = false;
+    
+    Body body;
+    
     Timer timer;
     ActionListener act;
     
@@ -35,7 +47,8 @@ public class VectorFrame extends javax.swing.JFrame {
         this.body = new Body(jCanvas.getWidth(), jCanvas.getHeight());
         centerX = body.getX();
         centerY = body.getY();
-        
+        body.vectors.add(new Vector(0, 0, "Result Vector", Color.RED));
+        updateJList();
     }
     
     public boolean checkCorrectSelection(int selectedIndex){
@@ -81,8 +94,7 @@ public class VectorFrame extends javax.swing.JFrame {
             resultY += body.vectors.get(i).getY();
         }
         
-        resultVector = new Vector(resultX, resultY, "ResultVector", isPolar);
-        body.vectors.set(0, resultVector);
+        body.vectors.set(0, new Vector(resultX, resultY, "Result Vector", Color.RED));
         lines.add(new Line(centerX, centerY, body.getX(), body.getY()));
         centerX = body.getX();
         centerY = body.getY();
@@ -109,9 +121,7 @@ public class VectorFrame extends javax.swing.JFrame {
         Vector vector = new Vector(
                 Double.parseDouble(jFirstValue.getText()),
                 Double.parseDouble(jSecondValue.getText()),
-                jVectorName.getText(),
-                isPolar()
-        );
+                jVectorName.getText(), Color.RED);
         
         //check if any Vector has the same name of this, if true, overwrite
         for(int i = 0; i < body.vectors.size(); i++){
@@ -162,6 +172,13 @@ public class VectorFrame extends javax.swing.JFrame {
         }
         return false;
     }
+    public void createLine(int startX, int startY, int destX, int destY){
+        if(timer != null){
+            if(timer.isRunning()){
+                lines.add(new Line(startX, startY, destX, destY));
+            }
+        }
+    }
     
     /**
      * This method is called from within the constructor to initialize the form.
@@ -172,8 +189,6 @@ public class VectorFrame extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        jTextField1 = new javax.swing.JTextField();
-        jButton1 = new javax.swing.JButton();
         jPanel1 = new javax.swing.JPanel();
         jNewVector = new javax.swing.JButton();
         jDeleteVector = new javax.swing.JButton();
@@ -188,21 +203,15 @@ public class VectorFrame extends javax.swing.JFrame {
         jVectorName = new javax.swing.JTextPane();
         jLabel3 = new javax.swing.JLabel();
         jPolarCheckbox = new javax.swing.JCheckBox();
+        jColorPicker = new javax.swing.JButton();
         jCanvas = new javax.swing.JPanel();
         jStartAnimation = new javax.swing.JButton();
-        jStartAnimation1 = new javax.swing.JButton();
-
-        jTextField1.setText("jTextField1");
-
-        jButton1.setText("jButton1");
+        jStopAnimation = new javax.swing.JButton();
+        jSave = new javax.swing.JButton();
+        jUpload = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(600, 300));
-        addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentResized(java.awt.event.ComponentEvent evt) {
-                formComponentResized(evt);
-            }
-        });
 
         jNewVector.setText("+ New Vector");
         jNewVector.setMinimumSize(new java.awt.Dimension(100, 25));
@@ -244,18 +253,29 @@ public class VectorFrame extends javax.swing.JFrame {
             }
         });
 
+        jColorPicker.setText("Color");
+        jColorPicker.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jColorPickerActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPolarCheckbox)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel3)))
-                .addGap(22, 22, 22)
+                        .addComponent(jLabel3)
+                        .addGap(22, 22, 22))
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jPolarCheckbox)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jColorPicker)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
                 .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jSecondValue, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -283,7 +303,8 @@ public class VectorFrame extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jSecondValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jSecondLabel))))
+                            .addComponent(jSecondLabel)
+                            .addComponent(jColorPicker))))
                 .addGap(0, 0, Short.MAX_VALUE))
         );
 
@@ -312,7 +333,7 @@ public class VectorFrame extends javax.swing.JFrame {
                     .addComponent(jNewVector, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
                     .addComponent(jDeleteVector, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(8, 8, 8)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 239, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 229, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
@@ -350,10 +371,24 @@ public class VectorFrame extends javax.swing.JFrame {
             }
         });
 
-        jStartAnimation1.setText("Stop");
-        jStartAnimation1.addActionListener(new java.awt.event.ActionListener() {
+        jStopAnimation.setText("Stop");
+        jStopAnimation.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jStartAnimation1ActionPerformed(evt);
+                jStopAnimationActionPerformed(evt);
+            }
+        });
+
+        jSave.setText("Save");
+        jSave.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jSaveActionPerformed(evt);
+            }
+        });
+
+        jUpload.setText("Upload");
+        jUpload.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jUploadActionPerformed(evt);
             }
         });
 
@@ -364,10 +399,14 @@ public class VectorFrame extends javax.swing.JFrame {
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(layout.createSequentialGroup()
-                        .addGap(0, 234, Short.MAX_VALUE)
+                        .addContainerGap()
+                        .addComponent(jSave)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jUpload)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 107, Short.MAX_VALUE)
                         .addComponent(jStartAnimation)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jStartAnimation1))
+                        .addComponent(jStopAnimation))
                     .addComponent(jCanvas, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -384,7 +423,9 @@ public class VectorFrame extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                             .addComponent(jStartAnimation)
-                            .addComponent(jStartAnimation1))))
+                            .addComponent(jStopAnimation)
+                            .addComponent(jSave)
+                            .addComponent(jUpload))))
                 .addContainerGap())
         );
 
@@ -396,13 +437,11 @@ public class VectorFrame extends javax.swing.JFrame {
         yDrag = evt.getY();
         repaint();
     }//GEN-LAST:event_jCanvasMouseDragged
-
     private void jCanvasMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jCanvasMousePressed
         if(jVectorList.getSelectedIndex() != 0){
             startDrag = false;
         }
     }//GEN-LAST:event_jCanvasMousePressed
-
     private void jCanvasMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jCanvasMouseReleased
         xDrag = evt.getX();
         yDrag = evt.getY();
@@ -418,11 +457,13 @@ public class VectorFrame extends javax.swing.JFrame {
         if(jVectorName.getText().isEmpty()){
             jVectorName.setText("AutoName " + String.valueOf(body.vectors.size()));
         }
+        createLine(preBodyX, preBodyY, body.getX(), body.getY());
+        preBodyX = body.getX();
+        preBodyY = body.getY();
         addVector();
         startDrag = true;
         enableTextBox(true);
     }//GEN-LAST:event_jCanvasMouseReleased
-
     private void jDeleteVectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jDeleteVectorActionPerformed
         int[] selectedVectors = jVectorList.getSelectedIndices();
         for(int i = 0; i < selectedVectors.length; i++){
@@ -440,7 +481,6 @@ public class VectorFrame extends javax.swing.JFrame {
         repaint();
         resetTextBoxes();
     }//GEN-LAST:event_jDeleteVectorActionPerformed
-
     private void jPolarCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPolarCheckboxActionPerformed
         isPolar = !isPolar;
         double firstValue = 0;
@@ -466,27 +506,22 @@ public class VectorFrame extends javax.swing.JFrame {
         }
 
     }//GEN-LAST:event_jPolarCheckboxActionPerformed
-
     private void jNewVectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jNewVectorActionPerformed
         addVector();
     }//GEN-LAST:event_jNewVectorActionPerformed
-
-    private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
-        
-    }//GEN-LAST:event_formComponentResized
-
     private void jStartAnimationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jStartAnimationActionPerformed
+        preBodyX = body.getX();
+        preBodyY = body.getY();
         ActionListener act = new ActionListener() {
             public void actionPerformed(ActionEvent evt) {
-                body.setX((int)body.vectors.get(0).getX() * 5/100 + body.getX());
-                body.setY(-(int)body.vectors.get(0).getY() * 5/100 + body.getY());
+                body.setX((int)body.vectors.get(0).getX()/2 + body.getX());
+                body.setY(-(int)body.vectors.get(0).getY()/2 + body.getY());
                 repaint();
             }
         };
-        timer = new Timer(10, act);
+        timer = new Timer(200, act);
         timer.start();        
     }//GEN-LAST:event_jStartAnimationActionPerformed
-
     private void jVectorListMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jVectorListMouseReleased
         enableTextBox(true);
         int[] selectedVectors = jVectorList.getSelectedIndices();
@@ -509,10 +544,55 @@ public class VectorFrame extends javax.swing.JFrame {
         }
         repaint();
     }//GEN-LAST:event_jVectorListMouseReleased
-
-    private void jStartAnimation1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jStartAnimation1ActionPerformed
+    private void jStopAnimationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jStopAnimationActionPerformed
         timer.stop();
-    }//GEN-LAST:event_jStartAnimation1ActionPerformed
+    }//GEN-LAST:event_jStopAnimationActionPerformed
+    private void jSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jSaveActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        chooser.showOpenDialog(null);
+        File newFile = new File(chooser.getSelectedFile().toString());
+        String whatToWrite = "";
+        for(int i = 1; i < body.vectors.size(); i++){
+            whatToWrite += body.vectors.get(i).getName() + ";" + body.vectors.get(i).getX() + ";" + body.vectors.get(i).getY() + "\n";
+        }
+        try {
+            newFile.createNewFile();
+            Path path = Paths.get(newFile.getPath());
+            Files.writeString(path, whatToWrite);
+        } catch (IOException e) {
+            System.err.println("File saving error");
+        }
+    }//GEN-LAST:event_jSaveActionPerformed
+    private void jUploadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jUploadActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        chooser.showOpenDialog(null);
+        File readFile = chooser.getSelectedFile();
+        try{
+            Scanner reader = new Scanner(readFile);
+            body.vectors.clear();
+            body.vectors.add(new Vector(0, 0, "Result Vector", Color.RED));
+            while(reader.hasNextLine()){
+                String[] splitted = reader.nextLine().split(";");
+                body.vectors.add(new Vector(Double.valueOf(splitted[1]), Double.valueOf(splitted[2]), splitted[0], Color.RED));
+            }
+            calcResultVector();
+            repaint();
+            updateJList();
+        }catch(FileNotFoundException e){
+            System.err.println("Reading file error");
+        }
+    }//GEN-LAST:event_jUploadActionPerformed
+    private void jColorPickerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jColorPickerActionPerformed
+        Color color = Color.BLACK;
+        
+        color  = JColorChooser.showDialog(null, "Select a color", color);
+        
+        int[] selectedVectors = jVectorList.getSelectedIndices();
+        
+        for(int i = 0; i < selectedVectors.length; i++){
+            body.vectors.get(selectedVectors[i]).setColor(color);
+        }
+    }//GEN-LAST:event_jColorPickerActionPerformed
 
     @Override
     public void paint(Graphics g) {
@@ -526,13 +606,12 @@ public class VectorFrame extends javax.swing.JFrame {
         g = graphics2D;
         g.clearRect(0, 0, jCanvas.getWidth(), jCanvas.getHeight());
         for (int i = 0; i < body.vectors.size(); i++) {
-            
             if(i == 0){
                 g.setColor(new Color(52, 163, 97));
             }else if(containValue(i)){
                 g.setColor(new Color(0, 115, 255));
             }else {
-                g.setColor(Color.RED);
+                g.setColor(body.vectors.get(i).getColor());
             }
             g.drawLine(body.getX(), body.getY(), (int)body.vectors.get(i).getX()+body.getX(), -(int)body.vectors.get(i).getY()+body.getY());
         }
@@ -585,8 +664,8 @@ public class VectorFrame extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
     private javax.swing.JPanel jCanvas;
+    private javax.swing.JButton jColorPicker;
     private javax.swing.JButton jDeleteVector;
     private javax.swing.JLabel jFirstLabel;
     private javax.swing.JTextField jFirstValue;
@@ -595,13 +674,14 @@ public class VectorFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JCheckBox jPolarCheckbox;
+    private javax.swing.JButton jSave;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JLabel jSecondLabel;
     private javax.swing.JTextField jSecondValue;
     private javax.swing.JButton jStartAnimation;
-    private javax.swing.JButton jStartAnimation1;
-    private javax.swing.JTextField jTextField1;
+    private javax.swing.JButton jStopAnimation;
+    private javax.swing.JButton jUpload;
     private javax.swing.JList<String> jVectorList;
     private javax.swing.JTextPane jVectorName;
     // End of variables declaration//GEN-END:variables
