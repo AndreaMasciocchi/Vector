@@ -10,27 +10,29 @@ import java.util.Objects;
 public class Vector {
     private double x;
     private double y;
+    private int varX;
+    private int varY;
     private double newton;
     private double angle;
     private String name;
     private Color color;
 
-    public Vector(double first, double second, String name, Color color) {
+    public Vector(double first, double second, String name, Color color, int varX, int varY) {
         this.name = name;
         this.color = color;
- //       if(isPolar){
-//            this.newton = first;
-//            this.angle = second;
-//            this.x = newton * Math.cos(angle);
-//            this.y = newton * Math.sin(angle);
-//        }else{
-            int n = 1;
-            this.x = first;
-            this.y = second;
-            if(x<0){n = -1;}
-            this.newton = n * Math.sqrt(Math.pow(first, 2) + Math.pow(second, 2));
-            this.angle = Math.atan(y/x);
-//        }
+        this.varX = varX;
+        this.varY = varY;
+        int n = 1;
+        this.x = first;
+        this.y = second;
+       
+        if(x<0){n = -1;}
+        this.newton = n * Math.sqrt(Math.pow(first, 2) + Math.pow(second, 2));
+        this.angle = Math.atan(y/x);
+//        this.newton = first;
+//        this.angle = second;
+//        this.x = newton * Math.cos(angle);
+//        this.y = newton * Math.sin(angle);
     }
     
     public double getX(){
@@ -68,6 +70,15 @@ public class Vector {
     public void setColor(Color color) {
         this.color = color;
     }
+
+    public int getVarX() {
+        return varX;
+    }
+
+    public int getVarY() {
+        return varY;
+    }
+    
     
     
     

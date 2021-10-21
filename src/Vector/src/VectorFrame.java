@@ -1,9 +1,11 @@
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.MouseInfo;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.geom.AffineTransform;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -30,7 +32,19 @@ public class VectorFrame extends javax.swing.JFrame {
     int centerY;
     int preBodyX;
     int preBodyY;
+    int canvasX;
+    int canvasY;
+    int gcd = 1;
     
+    private double xOffset = 0;
+    private double yOffset = 0;
+    private int xDiff;
+    private int yDiff;
+    
+    double zoomFactor = 1;
+    double prevZoomFactor = 1;
+    
+    boolean zoomer;
     boolean startDrag = true;
     boolean isPolar = false;
     
@@ -44,10 +58,12 @@ public class VectorFrame extends javax.swing.JFrame {
      */
     public VectorFrame() {
         initComponents();
-        this.body = new Body(jCanvas.getWidth(), jCanvas.getHeight());
+        canvasX = jCanvas.getWidth();
+        canvasY = jCanvas.getHeight();
+        this.body = new Body(canvasX, canvasY);
         centerX = body.getX();
         centerY = body.getY();
-        body.vectors.add(new Vector(0, 0, "Result Vector", Color.RED));
+        body.vectors.add(new Vector(0, 0, "Result Vector", Color.RED, 0, 0));
         updateJList();
     }
     
@@ -68,6 +84,8 @@ public class VectorFrame extends javax.swing.JFrame {
         jFirstValue.setEnabled(value);
         jSecondValue.setEnabled(value);
         jVectorName.setEnabled(value);
+        jVariableX.setEnabled(value);
+        jVariableY.setEnabled(value);
     }
     public static double getNewton(double x, double y){
         double result = 1;
@@ -94,7 +112,7 @@ public class VectorFrame extends javax.swing.JFrame {
             resultY += body.vectors.get(i).getY();
         }
         
-        body.vectors.set(0, new Vector(resultX, resultY, "Result Vector", Color.RED));
+        body.vectors.set(0, new Vector(resultX, resultY, "Result Vector", Color.RED, 0, 0));
         lines.add(new Line(centerX, centerY, body.getX(), body.getY()));
         centerX = body.getX();
         centerY = body.getY();
@@ -121,7 +139,7 @@ public class VectorFrame extends javax.swing.JFrame {
         Vector vector = new Vector(
                 Double.parseDouble(jFirstValue.getText()),
                 Double.parseDouble(jSecondValue.getText()),
-                jVectorName.getText(), Color.RED);
+                jVectorName.getText(), Color.RED, Integer.parseInt(jVariableX.getText()), Integer.parseInt(jVariableY.getText()));
         
         //check if any Vector has the same name of this, if true, overwrite
         for(int i = 0; i < body.vectors.size(); i++){
@@ -154,6 +172,8 @@ public class VectorFrame extends javax.swing.JFrame {
         jFirstValue.setText("");
         jSecondValue.setText("");
         jVectorName.setText("");
+        jVariableX.setText("");
+        jVariableY.setText("");
     }
     public void updateJList(){
         jVectorList.setModel(new javax.swing.AbstractListModel<String>() {
@@ -204,14 +224,22 @@ public class VectorFrame extends javax.swing.JFrame {
         jLabel3 = new javax.swing.JLabel();
         jPolarCheckbox = new javax.swing.JCheckBox();
         jColorPicker = new javax.swing.JButton();
+        jVariableX = new javax.swing.JTextField();
+        jVariableY = new javax.swing.JTextField();
         jCanvas = new javax.swing.JPanel();
         jStartAnimation = new javax.swing.JButton();
         jStopAnimation = new javax.swing.JButton();
         jSave = new javax.swing.JButton();
         jUpload = new javax.swing.JButton();
+        jReset = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setMinimumSize(new java.awt.Dimension(600, 300));
+        addComponentListener(new java.awt.event.ComponentAdapter() {
+            public void componentResized(java.awt.event.ComponentEvent evt) {
+                formComponentResized(evt);
+            }
+        });
 
         jNewVector.setText("+ New Vector");
         jNewVector.setMinimumSize(new java.awt.Dimension(100, 25));
@@ -265,47 +293,50 @@ public class VectorFrame extends javax.swing.JFrame {
         jPanel3Layout.setHorizontalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel3Layout.createSequentialGroup()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(jPanel3Layout.createSequentialGroup()
+                        .addComponent(jPolarCheckbox)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jColorPicker))
                     .addGroup(jPanel3Layout.createSequentialGroup()
                         .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 94, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel3)
-                        .addGap(22, 22, 22))
+                        .addComponent(jLabel3)))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jFirstValue, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jSecondValue, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jPolarCheckbox)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jColorPicker)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)))
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jSecondValue, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jSecondLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jSecondLabel))
+                        .addComponent(jVariableY, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jFirstValue, javax.swing.GroupLayout.PREFERRED_SIZE, 60, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jFirstLabel)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jFirstLabel)))
-                .addContainerGap(47, Short.MAX_VALUE))
+                        .addComponent(jVariableX, javax.swing.GroupLayout.PREFERRED_SIZE, 30, Short.MAX_VALUE))))
         );
         jPanel3Layout.setVerticalGroup(
             jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jPolarCheckbox))
-                    .addGroup(jPanel3Layout.createSequentialGroup()
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jFirstValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jFirstLabel)
-                            .addComponent(jLabel3))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                            .addComponent(jSecondValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jSecondLabel)
-                            .addComponent(jColorPicker))))
-                .addGap(0, 0, Short.MAX_VALUE))
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel3))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jPolarCheckbox)
+                    .addComponent(jColorPicker)))
+            .addGroup(jPanel3Layout.createSequentialGroup()
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jFirstValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jFirstLabel)
+                    .addComponent(jVariableX, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jSecondValue, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jSecondLabel)
+                    .addComponent(jVariableY, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
         );
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
@@ -313,17 +344,14 @@ public class VectorFrame extends javax.swing.JFrame {
         jPanel1Layout.setHorizontalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(79, 79, 79))
-            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                    .addComponent(jScrollPane1)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 259, Short.MAX_VALUE)
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(jNewVector, javax.swing.GroupLayout.PREFERRED_SIZE, 125, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jDeleteVector, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addComponent(jDeleteVector, javax.swing.GroupLayout.PREFERRED_SIZE, 127, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jPanel3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel1Layout.setVerticalGroup(
@@ -333,15 +361,22 @@ public class VectorFrame extends javax.swing.JFrame {
                     .addComponent(jNewVector, javax.swing.GroupLayout.DEFAULT_SIZE, 25, Short.MAX_VALUE)
                     .addComponent(jDeleteVector, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGap(8, 8, 8)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 229, Short.MAX_VALUE)
+                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 233, Short.MAX_VALUE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jPanel3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
 
+        jCanvas.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
+        jCanvas.setDebugGraphicsOptions(javax.swing.DebugGraphics.NONE_OPTION);
         jCanvas.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
             public void mouseDragged(java.awt.event.MouseEvent evt) {
                 jCanvasMouseDragged(evt);
+            }
+        });
+        jCanvas.addMouseWheelListener(new java.awt.event.MouseWheelListener() {
+            public void mouseWheelMoved(java.awt.event.MouseWheelEvent evt) {
+                jCanvasMouseWheelMoved(evt);
             }
         });
         jCanvas.addMouseListener(new java.awt.event.MouseAdapter() {
@@ -392,6 +427,13 @@ public class VectorFrame extends javax.swing.JFrame {
             }
         });
 
+        jReset.setText("Reset");
+        jReset.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                jResetActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -403,13 +445,15 @@ public class VectorFrame extends javax.swing.JFrame {
                         .addComponent(jSave)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jUpload)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 107, Short.MAX_VALUE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 29, Short.MAX_VALUE)
+                        .addComponent(jReset)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jStartAnimation)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jStopAnimation))
                     .addComponent(jCanvas, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, 270, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -425,7 +469,8 @@ public class VectorFrame extends javax.swing.JFrame {
                             .addComponent(jStartAnimation)
                             .addComponent(jStopAnimation)
                             .addComponent(jSave)
-                            .addComponent(jUpload))))
+                            .addComponent(jUpload)
+                            .addComponent(jReset))))
                 .addContainerGap())
         );
 
@@ -453,13 +498,15 @@ public class VectorFrame extends javax.swing.JFrame {
         }else{
             jFirstValue.setText(String.valueOf(xLength));
             jSecondValue.setText(String.valueOf(yLength));
+            jVariableX.setText("0");
+            jVariableY.setText("0");
         }
         if(jVectorName.getText().isEmpty()){
             jVectorName.setText("AutoName " + String.valueOf(body.vectors.size()));
         }
-        createLine(preBodyX, preBodyY, body.getX(), body.getY());
-        preBodyX = body.getX();
-        preBodyY = body.getY();
+//        createLine(preBodyX, preBodyY, body.getX(), body.getY());
+//        preBodyX = body.getX();
+//        preBodyY = body.getY();
         addVector();
         startDrag = true;
         enableTextBox(true);
@@ -481,6 +528,122 @@ public class VectorFrame extends javax.swing.JFrame {
         repaint();
         resetTextBoxes();
     }//GEN-LAST:event_jDeleteVectorActionPerformed
+    private void jNewVectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jNewVectorActionPerformed
+        addVector();
+    }//GEN-LAST:event_jNewVectorActionPerformed
+    private void jStartAnimationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jStartAnimationActionPerformed
+        preBodyX = body.getX();
+        preBodyY = body.getY();
+        ActionListener act;
+        act = new ActionListener() {
+            public void actionPerformed(ActionEvent evt) {
+//                for(int i = 1; i <= body.vectors.get(0).getX() && i <= body.vectors.get(0).getY(); i++){  
+//                    if(body.vectors.get(0).getX()%i==0 && body.vectors.get(0).getY()%i==0){
+//                        gcd = i;  
+//                    }
+//                }
+                for(Vector vector : body.vectors){
+                    vector.setX(vector.getX() + vector.getVarX());
+                    vector.setY(vector.getY() + vector.getVarY());
+                }
+                body.setX((int)body.vectors.get(0).getX()/gcd + body.getX());
+                body.setY(-(int)body.vectors.get(0).getY()/gcd + body.getY());
+                createLine(preBodyX, preBodyY, body.getX(), body.getY());
+                preBodyX = body.getX();
+                preBodyY = body.getY();
+                calcResultVector();
+                repaint();
+            }
+        };
+        timer = new Timer(200, act);
+        timer.start();        
+    }//GEN-LAST:event_jStartAnimationActionPerformed
+    private void jVectorListMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jVectorListMouseReleased
+        enableTextBox(true);
+        int[] selectedVectors = jVectorList.getSelectedIndices();
+        if(selectedVectors.length == 1){
+            if(checkCorrectSelection(selectedVectors[0])){
+                if(!isPolar){
+                    jFirstValue.setText(String.valueOf(body.vectors.get(selectedVectors[0]).getX()));
+                    jSecondValue.setText(String.valueOf(body.vectors.get(selectedVectors[0]).getY()));
+                    jVariableX.setText(String.valueOf(body.vectors.get(selectedVectors[0]).getVarX()));
+                    jVariableY.setText(String.valueOf(body.vectors.get(selectedVectors[0]).getVarY()));
+                }else{
+                    jFirstValue.setText(String.valueOf(body.vectors.get(selectedVectors[0]).getNewton()));
+                    jSecondValue.setText(String.valueOf(body.vectors.get(selectedVectors[0]).getAngle()));
+                }
+                jVectorName.setText(body.vectors.get(selectedVectors[0]).getName());
+                if(selectedVectors[0] == 0){
+                    enableTextBox(false);
+                }
+            }
+        }else{
+            resetTextBoxes();
+        }
+        repaint();
+    }//GEN-LAST:event_jVectorListMouseReleased
+    private void jStopAnimationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jStopAnimationActionPerformed
+        timer.stop();
+    }//GEN-LAST:event_jStopAnimationActionPerformed
+    private void jSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jSaveActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        chooser.showOpenDialog(null);
+        try {
+            File newFile = new File(chooser.getSelectedFile().toString());
+            String whatToWrite = "";
+            for(int i = 1; i < body.vectors.size(); i++){
+                whatToWrite += body.vectors.get(i).getName() + ";" + body.vectors.get(i).getX() + ";" + body.vectors.get(i).getY() + "\n";
+            }
+            newFile.createNewFile();
+            Path path = Paths.get(newFile.getPath());
+            Files.writeString(path, whatToWrite);
+        } catch (IOException e) {
+            System.err.println("File saving error");
+        }catch (NullPointerException e){
+            System.err.println("No file selected");
+        }
+    }//GEN-LAST:event_jSaveActionPerformed
+    private void jUploadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jUploadActionPerformed
+        JFileChooser chooser = new JFileChooser();
+        chooser.showOpenDialog(null);
+        try{
+            File readFile = chooser.getSelectedFile();
+            Scanner reader = new Scanner(readFile);
+            body.vectors.clear();
+            body.vectors.add(new Vector(0, 0, "Result Vector", Color.RED, Integer.parseInt(jVariableX.getText()), Integer.parseInt(jVariableY.getText())));
+            while(reader.hasNextLine()){
+                String[] splitted = reader.nextLine().split(";");
+                body.vectors.add(new Vector(Double.valueOf(splitted[1]), Double.valueOf(splitted[2]), splitted[0], Color.RED, Integer.parseInt(jVariableX.getText()), Integer.parseInt(jVariableY.getText())));
+            }
+            calcResultVector();
+            repaint();
+            updateJList();
+        }catch(FileNotFoundException e){
+            System.err.println("Reading file error");
+        }catch(NullPointerException e){
+            System.err.println("No file selected");
+        }
+    }//GEN-LAST:event_jUploadActionPerformed
+    private void jResetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jResetActionPerformed
+        timer.stop();
+        body.vectors.clear();
+        body.vectors.add(new Vector(0, 0, "Result Vector", Color.GREEN, Integer.parseInt(jVariableX.getText()), Integer.parseInt(jVariableY.getText())));
+        updateJList();
+        repaint();
+        body.setX(centerX);
+        body.setY(centerY);
+    }//GEN-LAST:event_jResetActionPerformed
+    private void jColorPickerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jColorPickerActionPerformed
+        Color color = Color.BLACK;
+        
+        color  = JColorChooser.showDialog(null, "Select a color", color);
+        
+        int[] selectedVectors = jVectorList.getSelectedIndices();
+        
+        for(int i = 0; i < selectedVectors.length; i++){
+            body.vectors.get(selectedVectors[i]).setColor(color);
+        }
+    }//GEN-LAST:event_jColorPickerActionPerformed
     private void jPolarCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPolarCheckboxActionPerformed
         isPolar = !isPolar;
         double firstValue = 0;
@@ -504,128 +667,73 @@ public class VectorFrame extends javax.swing.JFrame {
                 jSecondValue.setText(String.valueOf(getY(firstValue, secondValue)));
             }
         }
-
     }//GEN-LAST:event_jPolarCheckboxActionPerformed
-    private void jNewVectorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jNewVectorActionPerformed
-        addVector();
-    }//GEN-LAST:event_jNewVectorActionPerformed
-    private void jStartAnimationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jStartAnimationActionPerformed
-        preBodyX = body.getX();
-        preBodyY = body.getY();
-        ActionListener act = new ActionListener() {
-            public void actionPerformed(ActionEvent evt) {
-                body.setX((int)body.vectors.get(0).getX()/2 + body.getX());
-                body.setY(-(int)body.vectors.get(0).getY()/2 + body.getY());
-                repaint();
-            }
-        };
-        timer = new Timer(200, act);
-        timer.start();        
-    }//GEN-LAST:event_jStartAnimationActionPerformed
-    private void jVectorListMouseReleased(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_jVectorListMouseReleased
-        enableTextBox(true);
-        int[] selectedVectors = jVectorList.getSelectedIndices();
-        if(selectedVectors.length == 1){
-            if(checkCorrectSelection(selectedVectors[0])){
-                if(!isPolar){
-                    jFirstValue.setText(String.valueOf(body.vectors.get(selectedVectors[0]).getX()));
-                    jSecondValue.setText(String.valueOf(body.vectors.get(selectedVectors[0]).getY()));
-                }else{
-                    jFirstValue.setText(String.valueOf(body.vectors.get(selectedVectors[0]).getNewton()));
-                    jSecondValue.setText(String.valueOf(body.vectors.get(selectedVectors[0]).getAngle()));
-                }
-                jVectorName.setText(body.vectors.get(selectedVectors[0]).getName());
-                if(selectedVectors[0] == 0){
-                    enableTextBox(false);
-                }
-            }
-        }else{
-            resetTextBoxes();
-        }
-        repaint();
-    }//GEN-LAST:event_jVectorListMouseReleased
-    private void jStopAnimationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jStopAnimationActionPerformed
-        timer.stop();
-    }//GEN-LAST:event_jStopAnimationActionPerformed
-    private void jSaveActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jSaveActionPerformed
-        JFileChooser chooser = new JFileChooser();
-        chooser.showOpenDialog(null);
-        File newFile = new File(chooser.getSelectedFile().toString());
-        String whatToWrite = "";
-        for(int i = 1; i < body.vectors.size(); i++){
-            whatToWrite += body.vectors.get(i).getName() + ";" + body.vectors.get(i).getX() + ";" + body.vectors.get(i).getY() + "\n";
-        }
-        try {
-            newFile.createNewFile();
-            Path path = Paths.get(newFile.getPath());
-            Files.writeString(path, whatToWrite);
-        } catch (IOException e) {
-            System.err.println("File saving error");
-        }
-    }//GEN-LAST:event_jSaveActionPerformed
-    private void jUploadActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jUploadActionPerformed
-        JFileChooser chooser = new JFileChooser();
-        chooser.showOpenDialog(null);
-        File readFile = chooser.getSelectedFile();
-        try{
-            Scanner reader = new Scanner(readFile);
-            body.vectors.clear();
-            body.vectors.add(new Vector(0, 0, "Result Vector", Color.RED));
-            while(reader.hasNextLine()){
-                String[] splitted = reader.nextLine().split(";");
-                body.vectors.add(new Vector(Double.valueOf(splitted[1]), Double.valueOf(splitted[2]), splitted[0], Color.RED));
-            }
-            calcResultVector();
+    private void jCanvasMouseWheelMoved(java.awt.event.MouseWheelEvent evt) {//GEN-FIRST:event_jCanvasMouseWheelMoved
+        zoomer = true;
+        //Zoom in
+        if (evt.getWheelRotation() < 0) {
+            zoomFactor *= 1.1;
             repaint();
-            updateJList();
-        }catch(FileNotFoundException e){
-            System.err.println("Reading file error");
         }
-    }//GEN-LAST:event_jUploadActionPerformed
-    private void jColorPickerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jColorPickerActionPerformed
-        Color color = Color.BLACK;
-        
-        color  = JColorChooser.showDialog(null, "Select a color", color);
-        
-        int[] selectedVectors = jVectorList.getSelectedIndices();
-        
-        for(int i = 0; i < selectedVectors.length; i++){
-            body.vectors.get(selectedVectors[i]).setColor(color);
+        //Zoom out
+        if (evt.getWheelRotation() > 0) {
+            zoomFactor /= 1.1;
+            repaint();
         }
-    }//GEN-LAST:event_jColorPickerActionPerformed
+    }//GEN-LAST:event_jCanvasMouseWheelMoved
+    private void formComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_formComponentResized
+        canvasX = jCanvas.getWidth();
+        canvasY = jCanvas.getHeight();
+    }//GEN-LAST:event_formComponentResized
 
     @Override
     public void paint(Graphics g) {
         super.paint(g);
         g = jCanvas.getGraphics();
         Graphics2D graphics2D = (Graphics2D) g;
+        if (zoomer) {
+            AffineTransform at = new AffineTransform();
+
+            double xRel = MouseInfo.getPointerInfo().getLocation().getX() - getLocationOnScreen().getX();
+            double yRel = MouseInfo.getPointerInfo().getLocation().getY() - getLocationOnScreen().getY();
+
+            double zoomDiv = zoomFactor / prevZoomFactor;
+
+            xOffset = (zoomDiv) * (xOffset) + (1 - zoomDiv) * xRel;
+            yOffset = (zoomDiv) * (yOffset) + (1 - zoomDiv) * yRel;
+
+            at.translate(xOffset, yOffset);
+            at.scale(zoomFactor, zoomFactor);
+            prevZoomFactor = zoomFactor;
+            graphics2D.transform(at);
+            zoomer = false;
+        }
         graphics2D.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
             RenderingHints.VALUE_ANTIALIAS_ON); 
         graphics2D.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
             RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g = graphics2D;
-        g.clearRect(0, 0, jCanvas.getWidth(), jCanvas.getHeight());
+        graphics2D.clearRect(0, 0, jCanvas.getWidth(), jCanvas.getHeight());
         for (int i = 0; i < body.vectors.size(); i++) {
             if(i == 0){
-                g.setColor(new Color(52, 163, 97));
+                graphics2D.setColor(new Color(52, 163, 97));
             }else if(containValue(i)){
-                g.setColor(new Color(0, 115, 255));
+                graphics2D.setColor(new Color(0, 115, 255));
             }else {
-                g.setColor(body.vectors.get(i).getColor());
+                graphics2D.setColor(body.vectors.get(i).getColor());
             }
-            g.drawLine(body.getX(), body.getY(), (int)body.vectors.get(i).getX()+body.getX(), -(int)body.vectors.get(i).getY()+body.getY());
+            graphics2D.drawLine(body.getX(), body.getY(), (int)body.vectors.get(i).getX()+body.getX(), -(int)body.vectors.get(i).getY()+body.getY());
         }
         if((xDrag != 0 || yDrag != 0) && !startDrag){
-            g.setColor(Color.BLACK);
-            g.drawLine(body.getX(), body.getY(), xDrag, yDrag);
+            graphics2D.setColor(Color.BLACK);
+            graphics2D.drawLine(body.getX(), body.getY(), xDrag, yDrag);
         }
-        g.setColor(new Color(157, 0, 255));
+        graphics2D.setColor(new Color(157, 0, 255));
         for (int i = 0; i < lines.size(); i++) {
             Line l = lines.get(i);
-            g.drawLine(l.getStartX(), l.getStartY(), l.getDestX(), l.getDestY());
+            graphics2D.drawLine(l.getStartX(), l.getStartY(), l.getDestX(), l.getDestY());
         }
-        g.drawLine(centerX, centerY, body.getX(), body.getY());
-        body.paint(g);
+        graphics2D.drawLine(centerX, centerY, body.getX(), body.getY());
+        body.paint(graphics2D);
     }
     
     /**
@@ -674,6 +782,7 @@ public class VectorFrame extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel3;
     private javax.swing.JCheckBox jPolarCheckbox;
+    private javax.swing.JButton jReset;
     private javax.swing.JButton jSave;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
@@ -682,7 +791,9 @@ public class VectorFrame extends javax.swing.JFrame {
     private javax.swing.JButton jStartAnimation;
     private javax.swing.JButton jStopAnimation;
     private javax.swing.JButton jUpload;
+    private javax.swing.JTextField jVariableX;
+    private javax.swing.JTextField jVariableY;
     private javax.swing.JList<String> jVectorList;
     private javax.swing.JTextPane jVectorName;
     // End of variables declaration//GEN-END:variables
-}
+}   
