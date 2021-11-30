@@ -710,7 +710,6 @@ public class VectorFrame extends javax.swing.JFrame {
         canvasX = jCanvas.getWidth();
         canvasY = jCanvas.getHeight();
     }//GEN-LAST:event_formComponentResized
-
     private void jHiddenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jHiddenActionPerformed
         hiddenVectors = !hiddenVectors;
         repaint();
