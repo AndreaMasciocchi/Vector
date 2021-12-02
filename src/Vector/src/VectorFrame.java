@@ -197,9 +197,9 @@ public class VectorFrame extends javax.swing.JFrame {
     }
     public void createLine(double startX, double startY, double destX, double destY){
         if(timer != null){
-            if(timer.isRunning()){
+            //if(timer.isRunning()){
                 lines.add(new Line2D.Double(startX, startY, destX, destY));
-            }
+            //}
         }
     }
     
@@ -562,9 +562,10 @@ public class VectorFrame extends javax.swing.JFrame {
 
                 body.setX(body.vectors.get(0).getX()/10 + body.getX());
                 body.setY(-body.vectors.get(0).getY()/10+ body.getY());
-                createLine(preBodyX, preBodyY, body.getX(), body.getY());
-                preBodyX = body.getX();
-                preBodyY = body.getY();
+                if(lines.size() == 0){
+                    createLine(preBodyX, preBodyY, body.getX(), body.getY());
+                }
+                lines.set(lines.size()-1, new Line2D.Double(preBodyX, preBodyY, body.getX(), body.getY()));
                 calcResultVector();
                 repaint();
             }
