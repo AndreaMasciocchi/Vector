@@ -725,23 +725,23 @@ public class VectorFrame extends javax.swing.JFrame {
         imgG = img.createGraphics();
         graphics2D.setStroke(new BasicStroke(0.8f));
        
-//        if (zoomer) {
-//            double xRel = MouseInfo.getPointerInfo().getLocation().getX() - getLocationOnScreen().getX();
-//            double yRel = MouseInfo.getPointerInfo().getLocation().getY() - getLocationOnScreen().getY();
-//
-//            double zoomDiv = zoomFactor / prevZoomFactor;
-//
-//            xOffset = (zoomDiv) * (xOffset) + (1 - zoomDiv) * xRel;
-//            yOffset = (zoomDiv) * (yOffset) + (1 - zoomDiv) * yRel;
-//
-//            at.translate(xOffset, yOffset);
-//            at.scale(zoomFactor, zoomFactor);
-//            prevZoomFactor = zoomFactor;
-//            graphics2D.transform(at);
-//            zoomer = false;
-//        }else{
-//            graphics2D.transform(at);
-//        }
+        if (zoomer) {
+            double xRel = MouseInfo.getPointerInfo().getLocation().getX() - getLocationOnScreen().getX();
+            double yRel = MouseInfo.getPointerInfo().getLocation().getY() - getLocationOnScreen().getY();
+
+            double zoomDiv = zoomFactor / prevZoomFactor;
+
+            xOffset = (zoomDiv) * (xOffset) + (1 - zoomDiv) * xRel;
+            yOffset = (zoomDiv) * (yOffset) + (1 - zoomDiv) * yRel;
+
+            at.translate(xOffset, yOffset);
+            at.scale(zoomFactor, zoomFactor);
+            prevZoomFactor = zoomFactor;
+            graphics2D.transform(at);
+            zoomer = false;
+        }else{
+            graphics2D.transform(at);
+        }
         imgG.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
             RenderingHints.VALUE_ANTIALIAS_ON); 
         imgG.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
