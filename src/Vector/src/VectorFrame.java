@@ -135,6 +135,8 @@ public class VectorFrame extends javax.swing.JFrame {
         try {
             Double.parseDouble(jFirstValue.getText());
             Double.parseDouble(jSecondValue.getText());
+            Integer.parseInt(jVariableX.getText());
+            Integer.parseInt(jVariableY.getText());
         }catch (NumberFormatException e){
             return;
         }
@@ -607,7 +609,11 @@ public class VectorFrame extends javax.swing.JFrame {
             File newFile = new File(chooser.getSelectedFile().toString());
             String whatToWrite = "";
             for(int i = 1; i < body.vectors.size(); i++){
-                whatToWrite += body.vectors.get(i).getName() + ";" + body.vectors.get(i).getX() + ";" + body.vectors.get(i).getY() + ";" + body.vectors.get(i).getVarX() + ";" + body.vectors.get(i).getVarY() + "\n";
+                whatToWrite += body.vectors.get(i).getName() + ";" + 
+                        body.vectors.get(i).getX() + ";" + 
+                        body.vectors.get(i).getY() + ";" + 
+                        body.vectors.get(i).getVarX() + ";" + 
+                        body.vectors.get(i).getVarY() + "\n";
             }
             newFile.createNewFile();
             Path path = Paths.get(newFile.getPath());
@@ -628,7 +634,21 @@ public class VectorFrame extends javax.swing.JFrame {
             body.vectors.add(new Vector(0, 0, "Result Vector", Color.RED, 0, 0));
             while(reader.hasNextLine()){
                 String[] splitted = reader.nextLine().split(";");
-                body.vectors.add(new Vector(Double.valueOf(splitted[1]), Double.valueOf(splitted[2]), splitted[0], Color.RED, Integer.parseInt(splitted[3]), Integer.parseInt(splitted[4])));
+                try{
+                    body.vectors.add(
+                            new Vector(
+                                    Double.valueOf(splitted[1]), 
+                                    Double.valueOf(splitted[2]), 
+                                    splitted[0], 
+                                    Color.RED, 
+                                    Integer.parseInt(splitted[3]), 
+                                    Integer.parseInt(splitted[4])
+                            )
+                    );
+                }catch(NumberFormatException e){
+                    System.err.println("File formatted wrong");
+                    return;
+                }
             }
             calcResultVector();
             repaint();
@@ -661,36 +681,29 @@ public class VectorFrame extends javax.swing.JFrame {
     }//GEN-LAST:event_jResetActionPerformed
     private void jColorPickerActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jColorPickerActionPerformed
         Color color = Color.BLACK;
-        
         color  = JColorChooser.showDialog(null, "Select a color", color);
         
         int[] selectedVectors = jVectorList.getSelectedIndices();
-        
         for(int i = 0; i < selectedVectors.length; i++){
             body.vectors.get(selectedVectors[i]).setColor(color);
         }
     }//GEN-LAST:event_jColorPickerActionPerformed
     private void jPolarCheckboxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jPolarCheckboxActionPerformed
         isPolar = !isPolar;
-        double firstValue = 0;
-        double secondValue = 0;
-        if(!jFirstValue.getText().isEmpty() || !jSecondValue.getText().isEmpty()){
-            firstValue = Double.parseDouble(jFirstValue.getText());
-            secondValue = Double.parseDouble(jSecondValue.getText());
-        }
-        if(isPolar){
-            jFirstLabel.setText("N");
-            jSecondLabel.setText("°");
-            if(!jFirstValue.getText().isEmpty() || !jSecondValue.getText().isEmpty()){
-                jFirstValue.setText(String.valueOf(getNewton(firstValue, secondValue)));
-                jSecondValue.setText(String.valueOf(getAngle(firstValue, secondValue)));
-            }
-        }else{
-            jFirstLabel.setText("x");
-            jSecondLabel.setText("y");
-            if(!jFirstValue.getText().isEmpty() || !jSecondValue.getText().isEmpty()){
-                jFirstValue.setText(String.valueOf(getX(firstValue, secondValue)));
-                jSecondValue.setText(String.valueOf(getY(firstValue, secondValue)));
+        int[] selectedVectors = jVectorList.getSelectedIndices();
+        if(jVectorList.getSelectedIndices().length == 1){
+            if(isPolar){
+                enableTextBox(false);
+                jFirstLabel.setText("N");
+                jSecondLabel.setText("°");
+                jFirstValue.setText(String.valueOf(Math.round(body.vectors.get(selectedVectors[0]).getNewton())));
+                jSecondValue.setText(String.valueOf(Math.round(body.vectors.get(selectedVectors[0]).getAngle())));
+            }else{
+                enableTextBox(true);
+                jFirstLabel.setText("x");
+                jSecondLabel.setText("y");
+                jFirstValue.setText(String.valueOf(body.vectors.get(selectedVectors[0]).getX()));
+                jSecondValue.setText(String.valueOf(body.vectors.get(selectedVectors[0]).getY()));
             }
         }
     }//GEN-LAST:event_jPolarCheckboxActionPerformed
@@ -762,7 +775,6 @@ public class VectorFrame extends javax.swing.JFrame {
                     imgG.setColor(body.vectors.get(i).getColor());
                 }
                 imgG.draw(new Line2D.Double(body.getX(), body.getY(), body.vectors.get(i).getX() + body.getX(), -body.vectors.get(i).getY() + body.getY()));
-                //imgG.drawLine(body.getX(), body.getY(), (int) body.vectors.get(i).getX() + body.getX(), -(int) body.vectors.get(i).getY() + body.getY());
             }
         }
         if((xDrag != 0 || yDrag != 0) && !startDrag){

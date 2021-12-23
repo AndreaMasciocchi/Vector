@@ -26,11 +26,18 @@ public class Vector {
        
         if(x<0){n = -1;}
         this.newton = n * Math.sqrt(Math.pow(first, 2) + Math.pow(second, 2));
-        this.angle = Math.atan(y/x);
-//        this.newton = first;
-//        this.angle = second;
-//        this.x = newton * Math.cos(angle);
-//        this.y = newton * Math.sin(angle);
+        
+        if(this.x > 0){
+            this.angle = Math.toDegrees(Math.atan(this.y/this.x));
+        }else if(this.x < 0){
+            this.angle = Math.toDegrees(Math.atan(this.y/this.x)) + 180;
+        }else if(this.x == 0 && this.y > 0){
+            this.angle = 90;
+        }else if(this.x == 0 && this.y < 0){
+            this.angle = 270;
+        }
+
+        
     }
     
     public double getX(){
