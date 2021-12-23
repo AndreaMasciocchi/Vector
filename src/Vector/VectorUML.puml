@@ -1,0 +1,58 @@
+@startuml
+class Body
+class Vector
+class VectorFrame
+class java.awt.BasicStroke
+class java.awt.Color
+class java.awt.Graphics
+class java.awt.Graphics2D
+class java.awt.MouseInfo
+class java.awt.RenderingHints
+class java.awt.event.ActionEvent
+class java.awt.event.ActionListener
+class java.awt.geom.AffineTransform
+class java.awt.geom.Ellipse2D
+class java.awt.geom.Line2D
+class java.awt.image.BufferedImage
+class java.io.File
+class java.io.FileNotFoundException
+class java.io.IOException
+class java.nio.file.Files
+class java.nio.file.Path
+class java.nio.file.Paths
+class java.util.ArrayList
+class java.util.Scanner
+class javax.swing.JColorChooser
+class javax.swing.JFileChooser
+class javax.swing.JFrame
+class javax.swing.Timer
+Body ..> java.awt.Color
+Body ..> java.awt.Graphics
+Body ..> java.awt.Graphics2D
+Body ..> java.awt.geom.Ellipse2D
+Body ..> java.util.ArrayList
+Vector ..> java.awt.Color
+VectorFrame ..> java.awt.BasicStroke
+VectorFrame ..> java.awt.Color
+VectorFrame ..> java.awt.Graphics
+VectorFrame ..> java.awt.Graphics2D
+VectorFrame ..> java.awt.MouseInfo
+VectorFrame ..> java.awt.RenderingHints
+VectorFrame ..> java.awt.event.ActionEvent
+VectorFrame ..> java.awt.event.ActionListener
+VectorFrame ..> java.awt.geom.AffineTransform
+VectorFrame ..> java.awt.geom.Line2D
+VectorFrame ..> java.awt.image.BufferedImage
+VectorFrame ..> java.io.File
+VectorFrame ..> java.io.FileNotFoundException
+VectorFrame ..> java.io.IOException
+VectorFrame ..> java.nio.file.Files
+VectorFrame ..> java.nio.file.Path
+VectorFrame ..> java.nio.file.Paths
+VectorFrame ..> java.util.ArrayList
+VectorFrame ..> java.util.Scanner
+VectorFrame ..> javax.swing.JColorChooser
+VectorFrame ..> javax.swing.JFileChooser
+VectorFrame --|> javax.swing.JFrame
+VectorFrame ..> javax.swing.Timer
+@enduml
