@@ -607,7 +607,7 @@ public class VectorFrame extends javax.swing.JFrame {
             File newFile = new File(chooser.getSelectedFile().toString());
             String whatToWrite = "";
             for(int i = 1; i < body.vectors.size(); i++){
-                whatToWrite += body.vectors.get(i).getName() + ";" + body.vectors.get(i).getX() + ";" + body.vectors.get(i).getY() + "\n";
+                whatToWrite += body.vectors.get(i).getName() + ";" + body.vectors.get(i).getX() + ";" + body.vectors.get(i).getY() + ";" + body.vectors.get(i).getVarX() + ";" + body.vectors.get(i).getVarY() + "\n";
             }
             newFile.createNewFile();
             Path path = Paths.get(newFile.getPath());
@@ -625,10 +625,10 @@ public class VectorFrame extends javax.swing.JFrame {
             File readFile = chooser.getSelectedFile();
             Scanner reader = new Scanner(readFile);
             body.vectors.clear();
-            body.vectors.add(new Vector(0, 0, "Result Vector", Color.RED, Integer.parseInt(jVariableX.getText()), Integer.parseInt(jVariableY.getText())));
+            body.vectors.add(new Vector(0, 0, "Result Vector", Color.RED, 0, 0));
             while(reader.hasNextLine()){
                 String[] splitted = reader.nextLine().split(";");
-                body.vectors.add(new Vector(Double.valueOf(splitted[1]), Double.valueOf(splitted[2]), splitted[0], Color.RED, Integer.parseInt(jVariableX.getText()), Integer.parseInt(jVariableY.getText())));
+                body.vectors.add(new Vector(Double.valueOf(splitted[1]), Double.valueOf(splitted[2]), splitted[0], Color.RED, Integer.parseInt(splitted[3]), Integer.parseInt(splitted[4])));
             }
             calcResultVector();
             repaint();
